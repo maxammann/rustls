@@ -199,9 +199,13 @@ impl TryFrom<OpaqueMessage> for Message {
     type Error = Error;
 
     fn try_from(opaque: OpaqueMessage) -> Result<Self, Self::Error> {
+        let result = MessagePayload::new(opaque.typ, opaque.version, opaque.payload);
+        if let Err(err) = result {
+            panic!("Failed to decode message! This means we maybe need to remove logical checks from rustls! {}", err)
+        }
         Ok(Message {
             version: opaque.version,
-            payload: MessagePayload::new(opaque.typ, opaque.version, opaque.payload)?,
+            payload: result.unwrap(),
         })
     }
 }
