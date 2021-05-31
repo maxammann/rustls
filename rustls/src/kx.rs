@@ -11,8 +11,8 @@ pub struct KeyExchangeResult {
 /// An in-progress key exchange.  This has the algorithm,
 /// our private key, and our public key.
 pub struct KeyExchange {
-    skxg: &'static SupportedKxGroup,
-    privkey: ring::agreement::EphemeralPrivateKey,
+    pub skxg: &'static SupportedKxGroup,
+    pub privkey: ring::agreement::EphemeralPrivateKey,
     pub pubkey: ring::agreement::PublicKey,
 }
 
@@ -75,7 +75,7 @@ pub struct SupportedKxGroup {
     pub name: NamedGroup,
 
     /// The corresponding ring agreement::Algorithm
-    agreement_algorithm: &'static ring::agreement::Algorithm,
+    pub agreement_algorithm: &'static ring::agreement::Algorithm,
 }
 
 /// Ephemeral ECDH on curve25519 (see RFC7748)
