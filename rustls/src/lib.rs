@@ -249,36 +249,36 @@ mod log {
 
 #[allow(missing_docs)]
 #[macro_use]
-mod msgs;
-mod anchors;
-mod cipher;
-mod conn;
-mod error;
-mod hash_hs;
-mod key_schedule;
-mod limited_cache;
-mod prf;
-mod rand;
-mod record_layer;
-mod stream;
-mod tls12;
-mod vecbuf;
-mod verify;
+pub mod msgs;
+pub mod anchors;
+pub mod cipher;
+pub mod conn;
+pub mod error;
+pub mod hash_hs;
+pub mod key_schedule;
+pub mod limited_cache;
+pub mod prf;
+pub mod rand;
+pub mod record_layer;
+pub mod stream;
+pub mod tls12;
+pub mod vecbuf;
+pub mod verify;
 #[cfg(test)]
-mod verifybench;
-mod x509;
+pub mod verifybench;
+pub mod x509;
 #[macro_use]
-mod check;
-mod bs_debug;
-mod builder;
-mod client;
-mod key;
-mod keylog;
-mod kx;
-mod server;
-mod suites;
-mod ticketer;
-mod versions;
+pub mod check;
+pub mod bs_debug;
+pub mod builder;
+pub mod client;
+pub mod key;
+pub mod keylog;
+pub mod kx;
+pub mod server;
+pub mod suites;
+pub mod ticketer;
+pub mod versions;
 
 /// Internal classes which may be useful outside the library.
 /// The contents of this section DO NOT form part of the stable interface.
