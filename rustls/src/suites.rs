@@ -32,13 +32,13 @@ pub struct SupportedCipherSuite {
     /// How to do bulk encryption.
     pub bulk: BulkAlgorithm,
 
-    pub(crate) hkdf_algorithm: ring::hkdf::Algorithm,
-    pub(crate) aead_algorithm: &'static ring::aead::Algorithm,
+    pub hkdf_algorithm: ring::hkdf::Algorithm,
+    pub aead_algorithm: &'static ring::aead::Algorithm,
 
     tls12: Option<Tls12Parameters>,
 }
 
-pub(crate) struct Tls12Parameters {
+pub struct Tls12Parameters {
     /// How to exchange/agree keys.
     pub kx: KeyExchangeAlgorithm,
 
@@ -62,7 +62,7 @@ pub(crate) struct Tls12Parameters {
 }
 
 #[derive(Clone, Copy)]
-pub(crate) struct Tls12CipherSuite {
+pub struct Tls12CipherSuite {
     scs: &'static SupportedCipherSuite,
     tls12: &'static Tls12Parameters,
 }
@@ -126,7 +126,7 @@ impl SupportedCipherSuite {
         self.hmac_algorithm().digest_algorithm()
     }
 
-    pub(crate) fn hmac_algorithm(&self) -> ring::hmac::Algorithm {
+    pub fn hmac_algorithm(&self) -> ring::hmac::Algorithm {
         self.hkdf_algorithm.hmac_algorithm()
     }
 

@@ -404,7 +404,7 @@ pub struct ConnectionSecrets {
 }
 
 impl ConnectionSecrets {
-    pub(crate) fn new(
+    pub fn new(
         randoms: &ConnectionRandoms,
         suite: Tls12CipherSuite,
         pms: &[u8],
@@ -426,7 +426,7 @@ impl ConnectionSecrets {
         ret
     }
 
-    pub(crate) fn new_ems(
+    pub fn new_ems(
         randoms: &ConnectionRandoms,
         hs_hash: &Digest,
         suite: Tls12CipherSuite,
@@ -448,7 +448,7 @@ impl ConnectionSecrets {
         ret
     }
 
-    pub(crate) fn new_resume(
+    pub fn new_resume(
         randoms: &ConnectionRandoms,
         suite: Tls12CipherSuite,
         master_secret: &[u8],
@@ -487,7 +487,7 @@ impl ConnectionSecrets {
         out
     }
 
-    pub(crate) fn suite(&self) -> Tls12CipherSuite {
+    pub fn suite(&self) -> Tls12CipherSuite {
         self.suite
     }
 
@@ -571,7 +571,7 @@ pub struct ConnectionCommon {
     /// Protocol whose key schedule should be used. Unused for TLS < 1.3.
     pub protocol: Protocol,
     #[cfg(feature = "quic")]
-    pub(crate) quic: Quic,
+    pub quic: Quic,
 }
 
 impl ConnectionCommon {
@@ -664,7 +664,7 @@ impl ConnectionCommon {
         Ok(Some(MessageType::Data(msg)))
     }
 
-    pub(crate) fn process_new_packets<S: HandleState>(
+    pub fn process_new_packets<S: HandleState>(
         &mut self,
         state: &mut Option<S>,
         data: &mut S::Data,
@@ -697,7 +697,7 @@ impl ConnectionCommon {
         Ok(self.current_io_state())
     }
 
-    pub(crate) fn process_new_handshake_messages<S: HandleState>(
+    pub fn process_new_handshake_messages<S: HandleState>(
         &mut self,
         state: &mut Option<S>,
         data: &mut S::Data,
@@ -750,7 +750,7 @@ impl ConnectionCommon {
     // messages.  Otherwise the defragmented messages will have
     // been protected with two different record layer protections,
     // which is illegal.  Not mentioned in RFC.
-    pub(crate) fn check_aligned_handshake(&mut self) -> Result<(), Error> {
+    pub fn check_aligned_handshake(&mut self) -> Result<(), Error> {
         if !self.handshake_joiner.is_empty() {
             self.send_fatal_alert(AlertDescription::UnexpectedMessage);
             Err(Error::PeerMisbehavedError(
@@ -1078,7 +1078,7 @@ impl ConnectionCommon {
     }
 }
 
-pub(crate) trait HandleState: Sized {
+pub trait HandleState: Sized {
     type Data;
 
     fn handle(
@@ -1095,7 +1095,7 @@ pub enum MessageType {
 }
 
 #[cfg(feature = "quic")]
-pub(crate) struct Quic {
+pub struct Quic {
     /// QUIC transport parameters received from the peer during the handshake
     pub params: Option<Vec<u8>>,
     pub alert: Option<AlertDescription>,

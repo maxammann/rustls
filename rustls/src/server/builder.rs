@@ -52,9 +52,9 @@ use std::sync::Arc;
 /// * [`ServerConfig::alpn_protocols`]: the default is empty -- no ALPN protocol is negotiated.
 /// * [`ServerConfig::key_log`]: key material is not logged.
 pub struct ServerConfigBuilder {
-    pub(crate) cipher_suites: Vec<&'static SupportedCipherSuite>,
-    pub(crate) kx_groups: Vec<&'static SupportedKxGroup>,
-    pub(crate) versions: versions::EnabledVersions,
+    pub cipher_suites: Vec<&'static SupportedCipherSuite>,
+    pub kx_groups: Vec<&'static SupportedKxGroup>,
+    pub versions: versions::EnabledVersions,
 }
 
 impl ServerConfigBuilder {

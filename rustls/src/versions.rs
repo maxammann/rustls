@@ -41,7 +41,7 @@ pub struct EnabledVersions {
 }
 
 impl EnabledVersions {
-    pub(crate) fn new(versions: &[&'static SupportedProtocolVersion]) -> Self {
+    pub fn new(versions: &[&'static SupportedProtocolVersion]) -> Self {
         let mut ev = EnabledVersions {
             tls12: None,
             tls13: None,
@@ -50,7 +50,7 @@ impl EnabledVersions {
         ev
     }
 
-    pub(crate) fn contains(&self, version: ProtocolVersion) -> bool {
+    pub fn contains(&self, version: ProtocolVersion) -> bool {
         match version {
             ProtocolVersion::TLSv1_2 => self.tls12.is_some(),
             ProtocolVersion::TLSv1_3 => self.tls13.is_some(),

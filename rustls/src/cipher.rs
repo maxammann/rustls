@@ -255,10 +255,10 @@ impl GcmMessageDecrypter {
 }
 
 /// A TLS 1.3 write or read IV.
-pub(crate) struct Iv([u8; ring::aead::NONCE_LEN]);
+pub struct Iv([u8; ring::aead::NONCE_LEN]);
 
 impl Iv {
-    pub(crate) fn new(value: [u8; ring::aead::NONCE_LEN]) -> Self {
+    pub fn new(value: [u8; ring::aead::NONCE_LEN]) -> Self {
         Self(value)
     }
 
@@ -270,12 +270,12 @@ impl Iv {
     }
 
     #[cfg(test)]
-    pub(crate) fn value(&self) -> &[u8; 12] {
+    pub fn value(&self) -> &[u8; 12] {
         &self.0
     }
 }
 
-pub(crate) struct IvLen;
+pub struct IvLen;
 
 impl hkdf::KeyType for IvLen {
     fn len(&self) -> usize {

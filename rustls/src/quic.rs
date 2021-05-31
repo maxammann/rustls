@@ -13,7 +13,7 @@ use ring::{aead, hkdf};
 
 /// Secrets used to encrypt/decrypt traffic
 #[derive(Clone, Debug)]
-pub(crate) struct Secrets {
+pub struct Secrets {
     /// Secret used to encrypt packets transmitted by the client
     pub client: hkdf::Prk,
     /// Secret used to encrypt packets transmitted by the server
@@ -74,7 +74,7 @@ pub struct DirectionalKeys {
 }
 
 impl DirectionalKeys {
-    pub(crate) fn new(suite: &'static SupportedCipherSuite, secret: &hkdf::Prk) -> Self {
+    pub fn new(suite: &'static SupportedCipherSuite, secret: &hkdf::Prk) -> Self {
         let hp_alg = match suite.bulk {
             BulkAlgorithm::Aes128Gcm => &aead::quic::AES_128,
             BulkAlgorithm::Aes256Gcm => &aead::quic::AES_256,
@@ -184,7 +184,7 @@ impl Keys {
     }
 }
 
-pub(crate) fn read_hs(this: &mut ConnectionCommon, plaintext: &[u8]) -> Result<(), Error> {
+pub fn read_hs(this: &mut ConnectionCommon, plaintext: &[u8]) -> Result<(), Error> {
     if this
         .handshake_joiner
         .take_message(OpaqueMessage {
@@ -200,7 +200,7 @@ pub(crate) fn read_hs(this: &mut ConnectionCommon, plaintext: &[u8]) -> Result<(
     Ok(())
 }
 
-pub(crate) fn write_hs(this: &mut ConnectionCommon, buf: &mut Vec<u8>) -> Option<Keys> {
+pub fn write_hs(this: &mut ConnectionCommon, buf: &mut Vec<u8>) -> Option<Keys> {
     while let Some((_, msg)) = this.quic.hs_queue.pop_front() {
         buf.extend_from_slice(&msg);
         if let Some(&(true, _)) = this.quic.hs_queue.front() {
@@ -226,7 +226,7 @@ pub(crate) fn write_hs(this: &mut ConnectionCommon, buf: &mut Vec<u8>) -> Option
     None
 }
 
-pub(crate) fn next_1rtt_keys(this: &mut ConnectionCommon) -> Option<PacketKeySet> {
+pub fn next_1rtt_keys(this: &mut ConnectionCommon) -> Option<PacketKeySet> {
     let suite = this.get_suite()?;
     let secrets = this.quic.traffic_secrets.as_ref()?;
     let next = next_1rtt_secrets(suite.hkdf_algorithm, secrets);
