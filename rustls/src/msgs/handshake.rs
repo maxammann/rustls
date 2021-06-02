@@ -562,6 +562,7 @@ pub enum ClientExtension {
     TransportParameters(Vec<u8>),
     TransportParametersDraft(Vec<u8>),
     EarlyData,
+    RenegotiationInfo(PayloadU8),
     Unknown(UnknownExtension),
 }
 
@@ -587,6 +588,7 @@ impl ClientExtension {
             ClientExtension::TransportParameters(_) => ExtensionType::TransportParameters,
             ClientExtension::TransportParametersDraft(_) => ExtensionType::TransportParametersDraft,
             ClientExtension::EarlyData => ExtensionType::EarlyData,
+            ClientExtension::RenegotiationInfo(_) => ExtensionType::RenegotiationInfo,
             ClientExtension::Unknown(ref r) => r.typ,
         }
     }
@@ -616,6 +618,7 @@ impl Codec for ClientExtension {
             ClientExtension::CertificateStatusRequest(ref r) => r.encode(&mut sub),
             ClientExtension::TransportParameters(ref r)
             | ClientExtension::TransportParametersDraft(ref r) => sub.extend_from_slice(r),
+            ClientExtension::RenegotiationInfo(ref r) => r.encode(&mut sub),
             ClientExtension::Unknown(ref r) => r.encode(&mut sub),
         }
 
@@ -679,6 +682,9 @@ impl Codec for ClientExtension {
             }
             ExtensionType::TransportParametersDraft => {
                 ClientExtension::TransportParametersDraft(sub.rest().to_vec())
+            }
+            ExtensionType::RenegotiationInfo => {
+                ClientExtension::RenegotiationInfo(PayloadU8::new(sub.rest().to_vec()))
             }
             ExtensionType::EarlyData if !sub.any_left() => ClientExtension::EarlyData,
             _ => ClientExtension::Unknown(UnknownExtension::read(typ, &mut sub)),
