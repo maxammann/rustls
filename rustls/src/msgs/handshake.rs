@@ -563,6 +563,7 @@ pub enum ClientExtension {
     TransportParametersDraft(Vec<u8>),
     EarlyData,
     RenegotiationInfo(PayloadU8),
+    SignatureAlgorithmsCert(SupportedSignatureSchemes),
     Unknown(UnknownExtension),
 }
 
@@ -589,6 +590,7 @@ impl ClientExtension {
             ClientExtension::TransportParametersDraft(_) => ExtensionType::TransportParametersDraft,
             ClientExtension::EarlyData => ExtensionType::EarlyData,
             ClientExtension::RenegotiationInfo(_) => ExtensionType::RenegotiationInfo,
+            ClientExtension::SignatureAlgorithmsCert(_) => ExtensionType::SignatureAlgorithmsCert,
             ClientExtension::Unknown(ref r) => r.typ,
         }
     }
@@ -619,6 +621,7 @@ impl Codec for ClientExtension {
             ClientExtension::TransportParameters(ref r)
             | ClientExtension::TransportParametersDraft(ref r) => sub.extend_from_slice(r),
             ClientExtension::RenegotiationInfo(ref r) => r.encode(&mut sub),
+            ClientExtension::SignatureAlgorithmsCert(ref r) => r.encode(&mut sub),
             ClientExtension::Unknown(ref r) => r.encode(&mut sub),
         }
 
@@ -685,6 +688,10 @@ impl Codec for ClientExtension {
             }
             ExtensionType::RenegotiationInfo => {
                 ClientExtension::RenegotiationInfo(PayloadU8::new(sub.rest().to_vec()))
+            }
+            ExtensionType::SignatureAlgorithmsCert => {
+                let schemes = SupportedSignatureSchemes::read(&mut sub)?;
+                ClientExtension::SignatureAlgorithmsCert(schemes)
             }
             ExtensionType::EarlyData if !sub.any_left() => ClientExtension::EarlyData,
             _ => ClientExtension::Unknown(UnknownExtension::read(typ, &mut sub)),
