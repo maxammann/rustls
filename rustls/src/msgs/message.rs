@@ -9,6 +9,7 @@ use crate::msgs::enums::{ContentType, ProtocolVersion};
 use crate::msgs::handshake::HandshakeMessagePayload;
 
 use std::convert::TryFrom;
+use crate::msgs::heartbeat::HeartbeatPayload;
 
 #[derive(Debug, Clone)]
 pub enum MessagePayload {
@@ -16,6 +17,7 @@ pub enum MessagePayload {
     Handshake(HandshakeMessagePayload),
     ChangeCipherSpec(ChangeCipherSpecPayload),
     ApplicationData(Payload),
+    Heartbeat(HeartbeatPayload),
 }
 
 impl MessagePayload {
@@ -25,6 +27,7 @@ impl MessagePayload {
             MessagePayload::Handshake(ref x) => x.encode(bytes),
             MessagePayload::ChangeCipherSpec(ref x) => x.encode(bytes),
             MessagePayload::ApplicationData(ref x) => x.encode(bytes),
+            MessagePayload::Heartbeat(ref x) => x.encode(bytes),
         }
     }
 
@@ -43,6 +46,9 @@ impl MessagePayload {
             ContentType::ChangeCipherSpec => {
                 ChangeCipherSpecPayload::read(&mut r).map(MessagePayload::ChangeCipherSpec)
             }
+            ContentType::Heartbeat => {
+                HeartbeatPayload::read(&mut r).map(MessagePayload::Heartbeat)
+            }
             _ => None,
         };
 
@@ -57,6 +63,7 @@ impl MessagePayload {
             MessagePayload::Handshake(_) => ContentType::Handshake,
             MessagePayload::ChangeCipherSpec(_) => ContentType::ChangeCipherSpec,
             MessagePayload::ApplicationData(_) => ContentType::ApplicationData,
+            MessagePayload::Heartbeat(_) => ContentType::Heartbeat,
         }
     }
 }

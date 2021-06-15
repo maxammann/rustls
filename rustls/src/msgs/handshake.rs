@@ -1,7 +1,6 @@
 use std::collections;
 use std::fmt;
 
-use crate::internal::msgs::fragmenter::MAX_FRAGMENT_LEN;
 use crate::key;
 #[cfg(feature = "logging")]
 use crate::log::warn;
