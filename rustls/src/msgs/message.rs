@@ -10,11 +10,14 @@ use crate::msgs::handshake::HandshakeMessagePayload;
 
 use std::convert::TryFrom;
 use crate::msgs::heartbeat::HeartbeatPayload;
+use crate::internal::msgs::handshake::HandshakePayload;
 
 #[derive(Debug, Clone)]
 pub enum MessagePayload {
     Alert(AlertMessagePayload),
     Handshake(HandshakeMessagePayload),
+    // this type is for TLS 1.2 encrypted handshake messages
+    TLS12EncryptedHandshake(Payload),
     ChangeCipherSpec(ChangeCipherSpecPayload),
     ApplicationData(Payload),
     Heartbeat(HeartbeatPayload),
@@ -25,6 +28,7 @@ impl MessagePayload {
         match *self {
             MessagePayload::Alert(ref x) => x.encode(bytes),
             MessagePayload::Handshake(ref x) => x.encode(bytes),
+            MessagePayload::TLS12EncryptedHandshake(ref x) => x.encode(bytes),
             MessagePayload::ChangeCipherSpec(ref x) => x.encode(bytes),
             MessagePayload::ApplicationData(ref x) => x.encode(bytes),
             MessagePayload::Heartbeat(ref x) => x.encode(bytes),
@@ -36,12 +40,15 @@ impl MessagePayload {
         vers: ProtocolVersion,
         payload: Payload,
     ) -> Result<MessagePayload, Error> {
+        let fallback_payload = payload.clone();
         let mut r = Reader::init(&payload.0);
         let parsed = match typ {
             ContentType::ApplicationData => return Ok(MessagePayload::ApplicationData(payload)),
             ContentType::Alert => AlertMessagePayload::read(&mut r).map(MessagePayload::Alert),
             ContentType::Handshake => {
                 HandshakeMessagePayload::read_version(&mut r, vers).map(MessagePayload::Handshake)
+                    // this type is for TLS 1.2 encrypted handshake messages
+                    .or(Some(MessagePayload::TLS12EncryptedHandshake(fallback_payload)))
             }
             ContentType::ChangeCipherSpec => {
                 ChangeCipherSpecPayload::read(&mut r).map(MessagePayload::ChangeCipherSpec)
@@ -52,15 +59,18 @@ impl MessagePayload {
             _ => None,
         };
 
-        parsed
+        parsed.ok_or(Error::CorruptMessagePayload(typ))
+        // Ignore unused appended data
+        /*parsed
             .filter(|_| !r.any_left())
-            .ok_or(Error::CorruptMessagePayload(typ))
+            .ok_or(Error::CorruptMessagePayload(typ))*/
     }
 
     pub fn content_type(&self) -> ContentType {
         match self {
             MessagePayload::Alert(_) => ContentType::Alert,
             MessagePayload::Handshake(_) => ContentType::Handshake,
+            MessagePayload::TLS12EncryptedHandshake(_) => ContentType::Handshake,
             MessagePayload::ChangeCipherSpec(_) => ContentType::ChangeCipherSpec,
             MessagePayload::ApplicationData(_) => ContentType::ApplicationData,
             MessagePayload::Heartbeat(_) => ContentType::Heartbeat,
