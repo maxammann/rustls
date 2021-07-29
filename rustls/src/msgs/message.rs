@@ -10,7 +10,6 @@ use crate::msgs::handshake::HandshakeMessagePayload;
 
 use std::convert::TryFrom;
 use crate::msgs::heartbeat::HeartbeatPayload;
-use crate::internal::msgs::handshake::HandshakePayload;
 
 #[derive(Debug, Clone)]
 pub enum MessagePayload {
