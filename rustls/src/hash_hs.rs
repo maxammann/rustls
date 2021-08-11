@@ -23,6 +23,8 @@ pub struct HandshakeHash {
 
     /// buffer for pre-hashing stage and client-auth.
     buffer: Vec<u8>,
+
+    override_buffer: Option<Vec<u8>>,
 }
 
 impl HandshakeHash {
@@ -31,6 +33,17 @@ impl HandshakeHash {
             ctx: None,
             client_auth_enabled: false,
             buffer: Vec::new(),
+            override_buffer: None
+        }
+    }
+
+    /// Creates a Handshake hash which return the same override hash always
+    pub fn new_override(static_buffer: Vec<u8>) -> HandshakeHash {
+        HandshakeHash {
+            ctx: None,
+            client_auth_enabled: false,
+            buffer: Vec::new(),
+            override_buffer: Some(static_buffer)
         }
     }
 
@@ -133,6 +146,14 @@ impl HandshakeHash {
             .unwrap()
             .clone()
             .finish()
+    }
+
+    pub fn get_current_hash_raw(&self) -> Vec<u8> {
+        if let Some(static_buffer) = &self.override_buffer {
+            return static_buffer.clone()
+        } else {
+            Vec::from(self.get_current_hash().as_ref())
+        }
     }
 
     /// Takes this object's buffer containing all handshake messages
