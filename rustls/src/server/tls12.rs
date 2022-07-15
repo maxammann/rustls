@@ -400,7 +400,7 @@ mod client_hello {
         secdh.encode(&mut msg);
 
         let signer = signing_key
-            .choose_scheme(&sigschemes)
+            .choose_scheme(&sigschemes, Box::new(ring::rand::SystemRandom::new()))
             .ok_or_else(|| Error::General("incompatible signing key".to_string()))?;
         let sigscheme = signer.scheme();
         let sig = signer.sign(&msg)?;

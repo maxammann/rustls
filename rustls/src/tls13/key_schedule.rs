@@ -181,9 +181,14 @@ pub struct KeyScheduleHandshake {
 
 impl KeyScheduleHandshake {
     pub fn sign_server_finish(&self, hs_hash: &Digest) -> hmac::Tag {
-        self.ks
-            .sign_finish(&self.server_handshake_traffic_secret, hs_hash)
+        self.sign_server_finish_raw(hs_hash.as_ref())
     }
+
+    pub fn sign_server_finish_raw(&self, hs_hash: &[u8]) -> hmac::Tag {
+        self.ks
+            .sign_finish_raw(&self.server_handshake_traffic_secret, hs_hash)
+    }
+
 
     pub fn client_key(&self) -> &hkdf::Prk {
         &self.client_handshake_traffic_secret

@@ -7,6 +7,7 @@ use crate::msgs::handshake::SCTList;
 use crate::msgs::handshake::ServerExtension;
 use crate::{sign, DistinguishedNames, SignatureScheme};
 
+use ring::rand::SystemRandom;
 use std::sync::Arc;
 
 pub(super) struct ServerCertDetails {
@@ -97,7 +98,10 @@ impl ClientAuthDetails {
             .collect::<Vec<&[u8]>>();
 
         if let Some(certkey) = resolver.resolve(&acceptable_issuers, sigschemes) {
-            if let Some(signer) = certkey.key.choose_scheme(sigschemes) {
+            if let Some(signer) = certkey
+                .key
+                .choose_scheme(sigschemes, Box::new(SystemRandom::new()))
+            {
                 debug!("Attempting client auth");
                 return Self::Verify {
                     certkey,

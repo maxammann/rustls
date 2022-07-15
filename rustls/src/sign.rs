@@ -6,6 +6,8 @@ use crate::x509::{wrap_in_asn1_len, wrap_in_sequence};
 use ring::io::der;
 use ring::signature::{self, EcdsaKeyPair, Ed25519KeyPair, RsaKeyPair};
 
+use ring::rand;
+use ring::rand::SecureRandom;
 use std::convert::TryFrom;
 use std::error::Error as StdError;
 use std::fmt;
@@ -17,7 +19,11 @@ pub trait SigningKey: Send + Sync {
     ///
     /// Expresses the choice by returning something that implements `Signer`,
     /// using the chosen scheme.
-    fn choose_scheme(&self, offered: &[SignatureScheme]) -> Option<Box<dyn Signer>>;
+    fn choose_scheme(
+        &self,
+        offered: &[SignatureScheme],
+        rng: Box<dyn SecureRandom + Send + Sync>,
+    ) -> Option<Box<dyn Signer>>;
 
     /// What kind of key we have.
     fn algorithm(&self) -> SignatureAlgorithm;
@@ -199,11 +205,15 @@ impl RsaSigningKey {
 }
 
 impl SigningKey for RsaSigningKey {
-    fn choose_scheme(&self, offered: &[SignatureScheme]) -> Option<Box<dyn Signer>> {
+    fn choose_scheme(
+        &self,
+        offered: &[SignatureScheme],
+        rng: Box<dyn SecureRandom + Send + Sync>,
+    ) -> Option<Box<dyn Signer>> {
         ALL_RSA_SCHEMES
             .iter()
             .find(|scheme| offered.contains(scheme))
-            .map(|scheme| RsaSigner::new(Arc::clone(&self.key), *scheme))
+            .map(|scheme| RsaSigner::new(Arc::clone(&self.key), *scheme, rng))
     }
 
     fn algorithm(&self) -> SignatureAlgorithm {
@@ -220,10 +230,15 @@ pub struct RsaSigner {
     key: Arc<RsaKeyPair>,
     scheme: SignatureScheme,
     encoding: &'static dyn signature::RsaEncoding,
+    rng: Box<dyn SecureRandom + Send + Sync>,
 }
 
 impl RsaSigner {
-    pub fn new(key: Arc<RsaKeyPair>, scheme: SignatureScheme) -> Box<dyn Signer> {
+    pub fn new(
+        key: Arc<RsaKeyPair>,
+        scheme: SignatureScheme,
+        rng: Box<dyn SecureRandom + Send + Sync>,
+    ) -> Box<dyn Signer> {
         let encoding: &dyn signature::RsaEncoding = match scheme {
             SignatureScheme::RSA_PKCS1_SHA256 => &signature::RSA_PKCS1_SHA256,
             SignatureScheme::RSA_PKCS1_SHA384 => &signature::RSA_PKCS1_SHA384,
@@ -238,6 +253,7 @@ impl RsaSigner {
             key,
             scheme,
             encoding,
+            rng,
         })
     }
 }
@@ -246,9 +262,8 @@ impl Signer for RsaSigner {
     fn sign(&self, message: &[u8]) -> Result<Vec<u8>, Error> {
         let mut sig = vec![0; self.key.public_modulus_len()];
 
-        let rng = ring::rand::SystemRandom::new();
         self.key
-            .sign(self.encoding, &rng, message, &mut sig)
+            .sign(self.encoding, self.rng.as_ref(), message, &mut sig)
             .map(|_| sig)
             .map_err(|_| Error::General("signing failed".to_string()))
     }
@@ -342,11 +357,16 @@ const PKCS8_PREFIX_ECDSA_NISTP384: &[u8] = b"\x02\x01\x00\
      \x06\x05\x2b\x81\x04\x00\x22";
 
 impl SigningKey for EcdsaSigningKey {
-    fn choose_scheme(&self, offered: &[SignatureScheme]) -> Option<Box<dyn Signer>> {
+    fn choose_scheme(
+        &self,
+        offered: &[SignatureScheme],
+        rng: Box<dyn SecureRandom + Send + Sync>,
+    ) -> Option<Box<dyn Signer>> {
         if offered.contains(&self.scheme) {
             Some(Box::new(EcdsaSigner {
                 key: Arc::clone(&self.key),
                 scheme: self.scheme,
+                rng,
             }))
         } else {
             None
@@ -362,13 +382,13 @@ impl SigningKey for EcdsaSigningKey {
 pub struct EcdsaSigner {
     pub key: Arc<EcdsaKeyPair>,
     pub scheme: SignatureScheme,
+    pub rng: Box<dyn SecureRandom + Send + Sync>,
 }
 
 impl Signer for EcdsaSigner {
     fn sign(&self, message: &[u8]) -> Result<Vec<u8>, Error> {
-        let rng = ring::rand::SystemRandom::new();
         self.key
-            .sign(&rng, message)
+            .sign(self.rng.as_ref(), message)
             .map_err(|_| Error::General("signing failed".into()))
             .map(|sig| sig.as_ref().into())
     }
@@ -408,7 +428,11 @@ impl Ed25519SigningKey {
 }
 
 impl SigningKey for Ed25519SigningKey {
-    fn choose_scheme(&self, offered: &[SignatureScheme]) -> Option<Box<dyn Signer>> {
+    fn choose_scheme(
+        &self,
+        offered: &[SignatureScheme],
+        rng: Box<dyn SecureRandom + Send + Sync>,
+    ) -> Option<Box<dyn Signer>> {
         if offered.contains(&self.scheme) {
             Some(Box::new(Ed25519Signer {
                 key: Arc::clone(&self.key),

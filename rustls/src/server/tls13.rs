@@ -801,7 +801,7 @@ mod client_hello {
         let message = verify::construct_tls13_server_verify_message(&transcript.get_current_hash());
 
         let signer = signing_key
-            .choose_scheme(schemes)
+            .choose_scheme(schemes, Box::new(ring::rand::SystemRandom::new()))
             .ok_or_else(|| hs::incompatible(common, "no overlapping sigschemes"))?;
 
         let scheme = signer.scheme();
