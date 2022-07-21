@@ -449,6 +449,8 @@ pub mod server {
 }
 
 pub use server::{ServerConfig, ServerConnection};
+use crate::msgs::deframer::MessageDeframer;
+use crate::msgs::message::PlainMessage;
 
 /// All defined ciphersuites appear in this module.
 ///
@@ -526,3 +528,50 @@ pub type ServerSession = ServerConnection;
 /* Apologies: would make a trait alias here, but those remain unstable.
 pub trait Session = Connection;
 */
+
+impl puffin::put_registry::Message<crate::msgs::message::OpaqueMessage> for crate::msgs::message::Message {
+    fn create_opaque(&self) -> crate::msgs::message::OpaqueMessage {
+        PlainMessage::from(self.clone()).into_unencrypted_opaque()
+    }
+}
+impl puffin::put_registry::MessageDeframer<crate::msgs::message::Message, crate::msgs::message::OpaqueMessage> for MessageDeframer {
+    fn new() -> Self {
+        MessageDeframer::new()
+    }
+    fn pop_frame(&mut self) -> Option<crate::msgs::message::OpaqueMessage> {
+        self.frames.pop_front()
+    }
+    fn encode(&self) -> Vec<u8> {
+        let mut buffer: Vec<u8> = Vec::new();
+        for message in &self.frames {
+            buffer.append(&mut message.clone().encode());
+        }
+        buffer
+    }
+    fn read(&mut self, rd: &mut dyn std::io::Read) -> std::io::Result<usize> {
+        self.read(rd)
+    }
+}
+impl puffin::put_registry::OpaqueMessage<crate::msgs::message::Message> for crate::msgs::message::OpaqueMessage {
+    fn encode(&self) -> Vec<u8> {
+        self.clone().encode()
+    }
+
+    fn into_message(self) -> Result<crate::msgs::message::Message, puffin::error::Error> {
+        use std::convert::TryFrom;
+        crate::msgs::message::Message::try_from(self.into_plain_message()).map_err(|err|
+            puffin::error::Error::Stream("Failed to create message".to_string())
+        )
+    }
+}
+
+
+impl puffin::trace::QueryMatcher for crate::internal::msgs::enums::HandshakeType {
+    fn matches(&self, query: &Self) -> bool {
+        query == self
+    }
+
+    fn specificity(&self) -> u32 {
+        todo!()
+    }
+}
