@@ -533,7 +533,11 @@ impl puffin::protocol::Message<crate::msgs::message::OpaqueMessage> for crate::m
     fn create_opaque(&self) -> crate::msgs::message::OpaqueMessage {
         PlainMessage::from(self.clone()).into_unencrypted_opaque()
     }
+    fn debug(&self, info: &str) {
+        // TODO
+    }
 }
+
 impl puffin::protocol::MessageDeframer<crate::msgs::message::Message, crate::msgs::message::OpaqueMessage> for MessageDeframer {
     fn new() -> Self {
         MessageDeframer::new()
@@ -564,6 +568,10 @@ impl puffin::protocol::OpaqueMessage<crate::msgs::message::Message> for crate::m
             puffin::error::Error::Stream("Failed to create message".to_string())
         )
     }
+
+    fn debug(&self, info: &str) {
+        // TODO
+    }
 }
 
 impl puffin::algebra::QueryMatcher for crate::internal::msgs::enums::HandshakeType {
@@ -572,6 +580,6 @@ impl puffin::algebra::QueryMatcher for crate::internal::msgs::enums::HandshakeTy
     }
 
     fn specificity(&self) -> u32 {
-        todo!()
+        1
     }
 }
