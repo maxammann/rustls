@@ -529,12 +529,12 @@ pub type ServerSession = ServerConnection;
 pub trait Session = Connection;
 */
 
-impl puffin::put_registry::Message<crate::msgs::message::OpaqueMessage> for crate::msgs::message::Message {
+impl puffin::protocol::Message<crate::msgs::message::OpaqueMessage> for crate::msgs::message::Message {
     fn create_opaque(&self) -> crate::msgs::message::OpaqueMessage {
         PlainMessage::from(self.clone()).into_unencrypted_opaque()
     }
 }
-impl puffin::put_registry::MessageDeframer<crate::msgs::message::Message, crate::msgs::message::OpaqueMessage> for MessageDeframer {
+impl puffin::protocol::MessageDeframer<crate::msgs::message::Message, crate::msgs::message::OpaqueMessage> for MessageDeframer {
     fn new() -> Self {
         MessageDeframer::new()
     }
@@ -552,7 +552,8 @@ impl puffin::put_registry::MessageDeframer<crate::msgs::message::Message, crate:
         self.read(rd)
     }
 }
-impl puffin::put_registry::OpaqueMessage<crate::msgs::message::Message> for crate::msgs::message::OpaqueMessage {
+
+impl puffin::protocol::OpaqueMessage<crate::msgs::message::Message> for crate::msgs::message::OpaqueMessage {
     fn encode(&self) -> Vec<u8> {
         self.clone().encode()
     }
@@ -565,8 +566,7 @@ impl puffin::put_registry::OpaqueMessage<crate::msgs::message::Message> for crat
     }
 }
 
-
-impl puffin::trace::QueryMatcher for crate::internal::msgs::enums::HandshakeType {
+impl puffin::algebra::QueryMatcher for crate::internal::msgs::enums::HandshakeType {
     fn matches(&self, query: &Self) -> bool {
         query == self
     }
