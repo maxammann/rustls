@@ -574,9 +574,9 @@ impl puffin::protocol::OpaqueMessage<crate::msgs::message::Message> for crate::m
     }
 }
 
-impl puffin::algebra::QueryMatcher for crate::internal::msgs::enums::HandshakeType {
-    fn matches(&self, query: &Self) -> bool {
-        query == self
+impl puffin::algebra::Matcher for crate::internal::msgs::enums::HandshakeType {
+    fn matches(&self, matcher: &Self) -> bool {
+        matcher == self
     }
 
     fn specificity(&self) -> u32 {
